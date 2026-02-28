@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getMedicaments, supprimerMedicament, modifierMedicament } from '../services/api'
+import { getMedicaments, supprimerMedicament, modifierMedicament } from '../services/medicineService'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -362,4 +362,4 @@ function allerVersModification(id) {
   color: #7f8c8d;
   font-size: 1.2rem;
 }
-</style>
+</style>../services/medicineService

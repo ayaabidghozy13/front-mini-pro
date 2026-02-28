@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ajouterMedicament, modifierMedicament, getMedicaments } from '../services/api'
+import { ajouterMedicament, modifierMedicament, getMedicaments } from '../services/medicineService'
 
 const route = useRoute()
 const router = useRouter()
@@ -137,4 +137,4 @@ function annuler() {
 .btn-primary { flex: 2; background: #27ae60; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
 .btn-primary:hover { background: #219150; }
 .btn-secondary { flex: 1; background: #f1f2f6; color: #636e72; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-</style>
+</style>../services/medicineService
