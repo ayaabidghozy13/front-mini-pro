@@ -1,19 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// CHECK THESE TWO LINES CAREFULLY:
-import InventoryView  from '../views/InventoryView.vue'    // This should be your LIST page
-import MedicineFormView from '../views/MedicineFormVie.vue' // This should be your FORM page
+import LoginView from '../views/LoginView.vue'
+import InventoryView from '../views/InventoryView.vue'
+import MedicineFormView from '../views/MedicineFormView.vue'
 
 const routes = [
   { 
     path: '/', 
-    component: InventoryView  // '/' (Home/Inventaire) must point to the List
+    name: 'login',
+    component: LoginView 
+  },
+  { 
+    path: '/inventory', 
+    name: 'inventory',
+    component: InventoryView 
   },
   { 
     path: '/ajouter', 
-    component: MedicineFormView // '/ajouter' must point to the Form
+    name: 'add-medicine',
+    component: MedicineFormView 
   },
   { 
     path: '/modifier/:id', 
+    name: 'edit-medicine',
     component: MedicineFormView, 
     props: true 
   }
@@ -25,3 +33,13 @@ const router = createRouter({
 })
 
 export default router
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = localStorage.getItem('isLoggedIn') === 'true'
+  
+  if (to.path !== '/' && !isAuthenticated) {
+    // If trying to access inventory without "logging in", send back to Enter screen
+    next('/')
+  } else {
+    next()
+  }
+})
