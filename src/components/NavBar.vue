@@ -1,18 +1,62 @@
+<script setup>
+import { useRouter, useRoute } from 'vue-router'
+import { ref, watch } from 'vue'
+
+const router = useRouter()
+const route = useRoute()
+const isLogged = ref(false)
+
+// Fonction pour vérifier l'état d'authentification
+const checkAuth = () => {
+  isLogged.value = localStorage.getItem('isLoggedIn') === 'true'
+}
+
+// Surveillance de la route pour mettre à jour l'affichage en temps réel
+watch(
+  () => route.path,
+  () => {
+    checkAuth()
+  },
+  { immediate: true }
+)
+
+// Fonction de déconnexion
+const logout = () => {
+  localStorage.removeItem('isLoggedIn')
+  isLogged.value = false
+  router.push('/')
+}
+</script>
+
 <template>
   <nav class="navbar">
     <div class="nav-content">
-      <div class="logo" @click="$router.push('/')">
+      <div class="logo" @click="$router.push(isLogged ? '/inventory' : '/')">
         <span class="cross">✚</span>
         <h2>Pharma<span>Gestion</span></h2>
       </div>
 
-      <div class="liens">
-        <router-link to="/" class="nav-link" active-class="active-link">
+      <div class="liens" v-if="isLogged">
+        <router-link to="/inventory" class="nav-link" active-class="active-link">
           Inventaire
         </router-link>
+        
         <router-link to="/ajouter" class="btn-add">
           ＋ Nouveau Médicament
         </router-link>
+
+        <div class="profile-container">
+          <div class="profile-badge">
+            <span class="avatar">👨‍⚕️</span>
+            <span class="user-name">Pharmacien</span>
+            <div class="dropdown-menu">
+              <div class="dropdown-header">Mon Compte</div>
+              <button @click="logout" class="logout-item">
+                <span class="icon">🚪</span> Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -26,7 +70,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 4px solid #27ae60; /* Ta couleur verte */
+  border-bottom: 4px solid #27ae60;
 }
 
 .nav-content {
@@ -68,7 +112,7 @@
 .liens { 
   display: flex; 
   align-items: center; 
-  gap: 2.5rem; 
+  gap: 2rem; 
 }
 
 .nav-link { 
@@ -84,7 +128,6 @@
   color: #27ae60; 
 }
 
-/* Petit trait sous le lien actif */
 .active-link::after {
   content: '';
   position: absolute;
@@ -100,21 +143,101 @@
   text-decoration: none;
   background: #27ae60;
   color: white !important;
-  padding: 10px 22px;
+  padding: 10px 20px;
   border-radius: 12px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  transition: all 0.3s transform;
+  transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2);
 }
 
 .btn-add:hover { 
   background: #219150; 
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(39, 174, 96, 0.3);
 }
 
-@media (max-width: 600px) {
-  .logo h2 { display: none; } /* On cache le texte sur petit mobile pour garder la croix */
+/* --- Styles du Profil --- */
+.profile-container {
+  position: relative;
+  margin-left: 10px;
+}
+
+.profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px;
+  background: #f8fbf9;
+  border-radius: 50px;
+  border: 1px solid #e3f9eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.avatar {
+  font-size: 1.2rem;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Menu Déroulant */
+.dropdown-menu {
+  position: absolute;
+  top: 125%;
+  right: 0;
+  background: white;
+  min-width: 180px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border: 1px solid #f1f2f6;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-container:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-header {
+  padding: 12px 15px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #bdc3c7;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f1f2f6;
+}
+
+.logout-item {
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  background: none;
+  text-align: left;
+  color: #e74c3c;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 0 0 12px 12px;
+  transition: background 0.2s;
+}
+
+.logout-item:hover {
+  background: #fff5f5;
+}
+
+@media (max-width: 768px) {
+  .user-name, .logo h2 { display: none; }
+  .liens { gap: 1rem; }
 }
 </style>

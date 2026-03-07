@@ -1,4 +1,4 @@
-const API_URL = 'https://apipharmacie.pecatte.fr/api/4/medicaments';
+const API_URL = 'https://apipharmacie.pecatte.fr/api/15/medicaments';
 
 export async function getMedicaments() {
   const reponse = await fetch(API_URL);

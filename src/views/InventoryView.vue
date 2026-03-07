@@ -24,7 +24,7 @@ onMounted(() => {
   chargerDonnees()
 })
 
-// Filtrage intelligent (insensible à la casse et gère les valeurs nulles)
+// Filtrage intelligent 
 const medicamentsFiltres = computed(() => {
   if (!recherche.value) return medicaments.value;
   
@@ -34,7 +34,7 @@ const medicamentsFiltres = computed(() => {
   })
 })
 
-// --- ACTIONS ---
+
 
 async function retirerMedicament(id) {
   if (confirm("Voulez-vous vraiment supprimer ce médicament du stock ?")) {

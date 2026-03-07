@@ -37,7 +37,7 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('isLoggedIn') === 'true'
   
   if (to.path !== '/' && !isAuthenticated) {
-    // If trying to access inventory without "logging in", send back to Enter screen
+    
     next('/')
   } else {
     next()

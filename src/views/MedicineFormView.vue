@@ -23,7 +23,6 @@ onMounted(async () => {
       const medTrouve = tousLesMedocs.find(m => m.id == route.params.id)
       if (medTrouve) {
         medicamentFormulaire.value = { ...medTrouve }
-        // On vide photo pour le PUT (on n'envoie que si on change le fichier)
         medicamentFormulaire.value.photo = ''; 
       }
     } catch (err) {

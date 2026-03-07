@@ -6,7 +6,7 @@ const router = useRouter()
 
 const handleEnterEntry = (event) => {
   if (event.key === 'Enter') {
-    // Save to localStorage so it only happens once
+   
     localStorage.setItem('isLoggedIn', 'true')
     router.push('/inventory')
   }
