@@ -3,7 +3,10 @@ import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
+/*
+ *  fonction  qui détecte si l'utilisateur appuie sur Entrée
+ * Si oui on crée un "badge" de connexion dans le navigateur et on redirige.
+ */
 const handleEnterEntry = (event) => {
   if (event.key === 'Enter') {
    
@@ -13,14 +16,15 @@ const handleEnterEntry = (event) => {
 }
 
 onMounted(() => {
-  // If already logged in before, skip this page automatically
+  // Si l'utilisateur est déjà connecté, on saute cette page.
   if (localStorage.getItem('isLoggedIn') === 'true') {
     router.push('/inventory')
     return
   }
   window.addEventListener('keydown', handleEnterEntry)
 })
-
+/* On retire l'écouteur de clavier quand on quitte la page 
+ */
 onUnmounted(() => {
   window.removeEventListener('keydown', handleEnterEntry)
 })

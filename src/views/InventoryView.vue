@@ -4,13 +4,13 @@ import { getMedicaments, supprimerMedicament, modifierMedicament } from '../serv
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const medicaments = ref([])
-const recherche = ref('')
-const chargement = ref(true)
+const medicaments = ref([])// Liste complète des médicaments
+const recherche = ref('')// Texte saisi dans la barre de recherche
+const chargement = ref(true) // Indicateur de chargement API
 
 // Charger les données depuis l'API
 async function chargerDonnees() {
-  chargement.ref = true
+  chargement.value = true 
   try {
     medicaments.value = await getMedicaments()
   } catch (erreur) {
@@ -19,7 +19,7 @@ async function chargerDonnees() {
     chargement.value = false
   }
 }
-
+// Au montage du composant, on lance la récupération des données
 onMounted(() => {
   chargerDonnees()
 })
@@ -30,12 +30,11 @@ const medicamentsFiltres = computed(() => {
   
   return medicaments.value.filter(med => {
     const nom = med.denomination ? med.denomination.toLowerCase() : '';
-    return nom.includes(recherche.value.toLowerCase());
+    const forme = med.formepharmaceutique ? med.formepharmaceutique.toLowerCase() : '';
+    return nom.includes(recherche.value.toLowerCase()) || forme.includes(recherche.value.toLowerCase());
   })
 })
-
-
-
+//supp med 
 async function retirerMedicament(id) {
   if (confirm("Voulez-vous vraiment supprimer ce médicament du stock ?")) {
     await supprimerMedicament(id)
@@ -45,7 +44,6 @@ async function retirerMedicament(id) {
 
 async function augmenterStock(medicament) {
   const medModifie = { ...medicament, qte: medicament.qte + 1 }
-  // On vide la photo pour ne pas renvoyer l'ancien nom de fichier (contrainte API)
   medModifie.photo = '' 
   await modifierMedicament(medModifie)
   await chargerDonnees()
@@ -59,7 +57,7 @@ async function diminuerStock(medicament) {
     await chargerDonnees()
   }
 }
-
+// Redirection vers la page de modification complète
 function allerVersModification(id) {
   router.push(`/modifier/${id}`)
 }
@@ -74,16 +72,20 @@ function allerVersModification(id) {
       </div>
       
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
-        <input 
-          v-model="recherche" 
-          type="text" 
-          placeholder="Rechercher un médicament..." 
-        />
+        <div class="search-icon-container">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <input v-model="recherche" type="text" placeholder="Rechercher un médicament..." />
       </div>
     </header>
 
-    <div v-if="chargement" class="loader">Chargement de la pharmacie...</div>
+    <div v-if="chargement" class="loader">
+      <div class="spinner"></div>
+      <p>Chargement de la pharmacie...</p>
+    </div>
 
     <div v-else-if="medicamentsFiltres.length > 0" class="grid-stock">
       <div v-for="med in medicamentsFiltres" :key="med.id" class="med-card">
@@ -95,7 +97,14 @@ function allerVersModification(id) {
             alt="Photo médicament" 
           />
           <div v-else class="no-image">
-            <span>💊</span>
+            <div class="no-image-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#bdc3c7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 3h12a2 2 0 0 1 2 2v2H4V5a2 2 0 0 1 2-2Z"></path>
+                <path d="M4 7h16v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"></path>
+                <path d="M10 12h4"></path>
+                <path d="M12 10v4"></path>
+              </svg>
+            </div>
             <p>Aucune image</p>
           </div>
           
@@ -109,27 +118,14 @@ function allerVersModification(id) {
           <p class="forme">{{ med.formepharmaceutique || 'Forme non précisée' }}</p>
           
           <div class="stock-controls">
-            <button 
-              @click="diminuerStock(med)" 
-              :disabled="med.qte === 0" 
-              class="btn-circle"
-              title="Vente (-1)"
-            >−</button>
+            <button @click="diminuerStock(med)" :disabled="med.qte === 0" class="btn-circle">−</button>
             <span class="qte-display">{{ med.qte }}</span>
-            <button 
-              @click="augmenterStock(med)" 
-              class="btn-circle"
-              title="Livraison (+1)"
-            >+</button>
+            <button @click="augmenterStock(med)" class="btn-circle">+</button>
           </div>
 
           <div class="card-actions">
-            <button @click="allerVersModification(med.id)" class="btn-edit">
-              Modifier
-            </button>
-            <button @click="retirerMedicament(med.id)" class="btn-delete" title="Supprimer définitivement">
-              🗑
-            </button>
+            <button @click="allerVersModification(med.id)" class="btn-edit">Modifier</button>
+            <button @click="retirerMedicament(med.id)" class="btn-delete">🗑</button>
           </div>
         </div>
       </div>
@@ -137,18 +133,14 @@ function allerVersModification(id) {
 
     <div v-else class="empty-state">
       <p>Aucun médicament ne correspond à votre recherche.</p>
+      <button @click="recherche = ''" class="btn-clear">Effacer la recherche</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.home-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
+.home-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 
-/* Header & Recherche */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -158,30 +150,24 @@ function allerVersModification(id) {
   gap: 20px;
 }
 
-.header-text h1 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 2rem;
-}
+.header-text h1 { margin: 0; color: #2c3e50; font-size: 2.2rem; font-weight: 800; }
+.header-text p { margin: 5px 0 0; color: #7f8c8d; font-weight: 500; }
 
-.header-text p {
-  margin: 5px 0 0;
-  color: #7f8c8d;
-}
-
-.search-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
+.search-wrapper { position: relative; width: 100%; max-width: 400px; }
+.search-icon-container {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  pointer-events: none;
 }
 
 .search-wrapper input {
   width: 100%;
-  padding: 14px 20px 14px 45px;
+  padding: 14px 20px 14px 48px;
   border-radius: 12px;
   border: 1px solid #dfe6e9;
-  background: white;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
   font-size: 1rem;
   transition: all 0.3s ease;
 }
@@ -192,22 +178,12 @@ function allerVersModification(id) {
   outline: none;
 }
 
-.search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-}
-
-/* Grille */
 .grid-stock {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 2.5rem;
 }
 
-/* Carte Médicament */
 .med-card {
   background: white;
   border-radius: 20px;
@@ -215,24 +191,14 @@ function allerVersModification(id) {
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
   border: 1px solid #f1f2f6;
+  display: flex;
+  flex-direction: column;
 }
 
-.med-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-}
+.med-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
-.med-image {
-  height: 200px;
-  position: relative;
-  background: #f9f9f9;
-}
-
-.med-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.med-image { height: 200px; position: relative; background: #f8fbf9; }
+.med-image img { width: 100%; height: 100%; object-fit: contain; background: white; }
 
 .no-image {
   height: 100%;
@@ -242,48 +208,32 @@ function allerVersModification(id) {
   justify-content: center;
   color: #bdc3c7;
 }
-
-.no-image span { font-size: 3rem; margin-bottom: 10px; }
+.no-image-icon { margin-bottom: 10px; opacity: 0.6; }
+.no-image p { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin: 0; }
 
 .stock-badge {
   position: absolute;
-  bottom: 15px;
-  left: 15px;
+  top: 15px;
+  right: 15px;
   padding: 6px 14px;
   border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
 .stock-badge.ok { background: #e3f9eb; color: #27ae60; }
 .stock-badge.low { background: #fff2f2; color: #e74c3c; animation: pulse 2s infinite; }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
+  0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
 }
 
-.med-info { padding: 1.5rem; }
+.med-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+.med-info h3 { margin: 0; font-size: 1.2rem; color: #2c3e50; text-overflow: ellipsis; overflow: hidden; }
+.forme { color: #95a5a6; font-size: 0.9rem; margin: 8px 0 20px; }
 
-.med-info h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #2c3e50;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.forme {
-  color: #95a5a6;
-  font-size: 0.9rem;
-  margin: 8px 0 20px;
-}
-
-/* Contrôles de stock */
 .stock-controls {
   display: flex;
   align-items: center;
@@ -292,11 +242,12 @@ function allerVersModification(id) {
   padding: 8px 15px;
   border-radius: 12px;
   margin-bottom: 20px;
+  margin-top: auto;
 }
 
 .btn-circle {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   border: none;
   background: white;
@@ -304,62 +255,28 @@ function allerVersModification(id) {
   font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: all 0.2s;
-}
-
-.btn-circle:hover:not(:disabled) {
-  background: #27ae60;
-  color: white;
-}
-
-.btn-circle:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.qte-display {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #2c3e50;
-}
-
-/* Boutons d'action */
-.card-actions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
+.btn-circle:hover:not(:disabled) { background: #27ae60; color: white; }
+.btn-circle:disabled { opacity: 0.3; }
 
-.btn-edit {
-  flex: 1;
-  background: #f1f2f6;
-  color: #2c3e50;
-  border: none;
-  padding: 10px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-}
+.qte-display { font-size: 1.1rem; font-weight: 800; color: #2c3e50; }
 
-.btn-edit:hover { background: #dfe4ea; }
-
-.btn-delete {
-  background: #fff2f2;
-  color: #e74c3c;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
+.card-actions { display: flex; gap: 10px; }
+.btn-edit { flex: 1; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+.btn-edit:hover { background: #219150; }
+.btn-delete { background: #fff2f2; color: #e74c3c; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; }
 .btn-delete:hover { background: #ffdada; }
 
-.empty-state, .loader {
-  text-align: center;
-  padding: 5rem;
-  color: #7f8c8d;
-  font-size: 1.2rem;
+.loader, .empty-state { text-align: center; padding: 5rem; color: #7f8c8d; }
+.spinner {
+  width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #27ae60;
+  border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;
 }
-</style>../services/medicineService
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.btn-clear { margin-top: 20px; background: none; border: 1px solid #27ae60; color: #27ae60; padding: 8px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; }
+</style>

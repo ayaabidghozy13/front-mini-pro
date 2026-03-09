@@ -3,9 +3,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ajouterMedicament, modifierMedicament, getMedicaments } from '../services/medicineService'
 
-const route = useRoute()
-const router = useRouter()
-
+const route = useRoute() // Pour récupérer les paramètres de l'URL 
+const router = useRouter() // Pour rediriger l'utilisateur après l'action
+// c'est L'objet qui stocke les données saisies dans le formulaire
 const medicamentFormulaire = ref({
   denomination: '',
   formepharmaceutique: '',
@@ -13,8 +13,10 @@ const medicamentFormulaire = ref({
   photo: '' 
 })
 
-const estModeModification = ref(false)
-
+const estModeModification = ref(false) // Flag pour savoir si on édite un produit existant
+/* Si l'URL contient un ID on passe en modification
+ * On récupère les données actuelles du médicament pour préremplir les champs
+ */
 onMounted(async () => {
   if (route.params.id) {
     estModeModification.value = true
@@ -22,7 +24,9 @@ onMounted(async () => {
       const tousLesMedocs = await getMedicaments()
       const medTrouve = tousLesMedocs.find(m => m.id == route.params.id)
       if (medTrouve) {
+        // Copie des données trouvées dans le formulaire
         medicamentFormulaire.value = { ...medTrouve }
+         // On vide le champ photo pour  forcer un nouvel upload
         medicamentFormulaire.value.photo = ''; 
       }
     } catch (err) {
@@ -30,7 +34,10 @@ onMounted(async () => {
     }
   }
 })
-
+/**
+ * J'utilise FileReader pour transformer l'image sélectionnée en Base64.
+ * Cela permet d'envoyer l'image sous forme de texte à l'API.
+ */
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return; 
@@ -42,6 +49,9 @@ const handleFileUpload = (event) => {
   reader.readAsDataURL(file); 
 };
 
+/**
+ * On choisit la fonction du service Ajouter ou Modifier selon le mode.
+ */
 async function sauvegarder() {
   try {
     medicamentFormulaire.value.qte = parseInt(medicamentFormulaire.value.qte, 10);
